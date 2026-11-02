@@ -1,8 +1,12 @@
 import { Notice, Plugin, setIcon } from 'obsidian';
 import { CopycelSettings } from './types';
 
+const ICON_SIZE = 22;
+const ICON_INSET = 4;
+
 export class TableHandler {
 	private currentCell: HTMLTableCellElement | null = null;
+	private icon: HTMLSpanElement | null = null;
 
 	constructor(
 		private readonly plugin: Plugin,
@@ -14,23 +18,29 @@ export class TableHandler {
 	}
 
 	start(): void {
+		this.plugin.registerDomEvent(document, 'pointerdown', (evt) => this.blockEditorFocus(evt), true);
+		this.plugin.registerDomEvent(document, 'mousedown', (evt) => this.blockEditorFocus(evt), true);
 		this.plugin.registerDomEvent(document, 'click', (evt) => this.onClick(evt));
 		this.plugin.registerDomEvent(document, 'mouseover', (evt) => this.onHover(evt));
 		this.plugin.registerDomEvent(document, 'mouseout', (evt) => this.onLeave(evt));
+		this.plugin.registerDomEvent(window, 'scroll', () => this.positionIcon(), true);
+		this.plugin.register(() => this.hideIcon());
+	}
+
+	private blockEditorFocus(evt: Event): void {
+		const target = this.eventElement(evt);
+		if (!target || !this.isCopyIcon(target)) return;
+		evt.preventDefault();
+		evt.stopPropagation();
 	}
 
 	private onClick(evt: MouseEvent): void {
 		const target = this.eventElement(evt);
-		const icon = target?.closest('.copycel-cell-copy-icon');
-		if (!icon) return;
+		if (!target || !this.isCopyIcon(target) || !this.currentCell) return;
 
 		evt.preventDefault();
 		evt.stopPropagation();
-
-		const cell = icon.closest('td, th');
-		if (cell instanceof HTMLTableCellElement) {
-			void this.copyCellValue(cell);
-		}
+		void this.copyCellValue(this.currentCell);
 	}
 
 	private onHover(evt: MouseEvent): void {
@@ -39,7 +49,7 @@ export class TableHandler {
 
 		const cell = target.closest('td, th');
 		if (!(cell instanceof HTMLTableCellElement) || !this.isNoteCell(cell)) {
-			this.removeCopyIcon();
+			this.hideIcon();
 			return;
 		}
 
@@ -52,43 +62,63 @@ export class TableHandler {
 		if (!target) return;
 
 		const related = evt.relatedTarget instanceof Element ? evt.relatedTarget : null;
-		if (related && this.isCopyIcon(related)) return;
+		if (related && (this.isCopyIcon(related) || this.isInsideCurrentCell(related))) return;
 
-		const cell = target.closest('td, th');
-		if (!cell) return;
-		if (!related?.closest('table')) this.removeCopyIcon();
+		const leftIcon = this.isCopyIcon(target);
+		const leftCell = target.closest('td, th') === this.currentCell;
+		if (leftIcon || leftCell) this.hideIcon();
 	}
 
 	private showCopyIcon(cell: HTMLTableCellElement): void {
-		this.removeCopyIcon();
-		if (!this.readCellValue(cell)) return;
+		if (!cell.innerText.trim()) {
+			this.hideIcon();
+			return;
+		}
 
-		const icon = cell.createSpan({
-			cls: 'copycel-cell-copy-icon',
-			attr: {
-				'aria-label': 'Copy cell value',
-				role: 'button',
-				title: 'Copy cell value',
-			},
-		});
-		setIcon(icon, 'copy');
-		cell.addClass('copycel-cell');
+		const doc = cell.ownerDocument;
+		if (!this.icon || this.icon.ownerDocument !== doc) {
+			this.icon?.remove();
+			this.icon = doc.body.createSpan({
+				cls: 'copycel-cell-copy-icon',
+				attr: {
+					'aria-label': 'Copy cell value',
+					role: 'button',
+					title: 'Copy cell value',
+				},
+			});
+			setIcon(this.icon, 'copy');
+		}
+
 		this.currentCell = cell;
+		this.positionIcon();
 	}
 
-	private removeCopyIcon(): void {
-		this.currentCell?.removeClass('copycel-cell');
-		this.currentCell = null;
+	private positionIcon(): void {
+		const icon = this.icon;
+		const cell = this.currentCell;
+		if (!icon || !cell) return;
+		if (!cell.isConnected) {
+			this.hideIcon();
+			return;
+		}
 
-		document.querySelectorAll('.copycel-cell-copy-icon').forEach((icon) => {
-			const cell = icon.closest('td, th');
-			if (cell instanceof HTMLElement) cell.removeClass('copycel-cell');
-			icon.remove();
-		});
+		const rect = cell.getBoundingClientRect();
+		const visible = this.isCellVisible(cell, rect);
+		icon.toggleClass('is-hidden', !visible);
+		if (!visible) return;
+
+		icon.style.setProperty('--copycel-top', `${Math.round(rect.top + ICON_INSET)}px`);
+		icon.style.setProperty('--copycel-left', `${Math.round(rect.right - ICON_INSET - ICON_SIZE)}px`);
+	}
+
+	private hideIcon(): void {
+		this.icon?.remove();
+		this.icon = null;
+		this.currentCell = null;
 	}
 
 	private async copyCellValue(cell: HTMLTableCellElement): Promise<void> {
-		const cellText = this.readCellValue(cell);
+		const cellText = cell.innerText.trim();
 		if (!cellText) {
 			if (this.settings.showNotification) new Notice('Cell is empty');
 			return;
@@ -102,17 +132,26 @@ export class TableHandler {
 		}
 
 		if (this.settings.showNotification) new Notice(`Copied ${cellText}`);
-
-		cell.addClass('copycel-flash');
-		window.setTimeout(() => cell.removeClass('copycel-flash'), 500);
+		this.flashCell(cell);
 	}
 
-	private readCellValue(cell: HTMLTableCellElement): string {
-		const icon = cell.querySelector('.copycel-cell-copy-icon');
-		icon?.remove();
-		const value = cell.innerText.trim();
-		if (icon) cell.appendChild(icon);
-		return value;
+	private flashCell(cell: HTMLTableCellElement): void {
+		const rect = cell.getBoundingClientRect();
+		const overlay = cell.ownerDocument.body.createDiv({ cls: 'copycel-flash' });
+		overlay.style.setProperty('--copycel-top', `${Math.round(rect.top)}px`);
+		overlay.style.setProperty('--copycel-left', `${Math.round(rect.left)}px`);
+		overlay.style.setProperty('--copycel-width', `${Math.round(rect.width)}px`);
+		overlay.style.setProperty('--copycel-height', `${Math.round(rect.height)}px`);
+		window.setTimeout(() => overlay.remove(), 500);
+	}
+
+	private isCellVisible(cell: HTMLTableCellElement, rect: DOMRect): boolean {
+		if (rect.width === 0 || rect.height === 0) return false;
+		const scroller = cell.closest('.cm-scroller, .markdown-preview-view');
+		if (!(scroller instanceof HTMLElement)) return true;
+
+		const bounds = scroller.getBoundingClientRect();
+		return rect.bottom > bounds.top && rect.top < bounds.bottom && rect.right > bounds.left && rect.left < bounds.right;
 	}
 
 	private eventElement(evt: Event): Element | null {
@@ -121,6 +160,10 @@ export class TableHandler {
 
 	private isCopyIcon(el: Element): boolean {
 		return el.closest('.copycel-cell-copy-icon') !== null;
+	}
+
+	private isInsideCurrentCell(el: Element): boolean {
+		return this.currentCell !== null && el.closest('td, th') === this.currentCell;
 	}
 
 	private isNoteCell(cell: HTMLTableCellElement): boolean {
