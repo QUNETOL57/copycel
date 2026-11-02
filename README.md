@@ -6,6 +6,10 @@ Copycel copies a table cell with one click. In Reading view and Live Preview, ho
 
 Install Copycel from **Settings → Community plugins → Browse**.
 
+## Clipboard
+
+When you click the copy icon, Copycel writes that cell's text to the system clipboard. It does not read the clipboard, so text copied from other applications stays there until you copy a cell. The cell value can appear in the operating system's clipboard history.
+
 ## Usage
 
 1. Open a note that contains a Markdown table.

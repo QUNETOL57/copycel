@@ -1,37 +1,69 @@
-.copycel-cell {
-	position: relative !important;
+.markdown-preview-view td.copycel-cell,
+.markdown-preview-view th.copycel-cell,
+.markdown-source-view td.copycel-cell,
+.markdown-source-view th.copycel-cell {
+	position: relative;
 }
 
-.copycel-cell-copy-icon {
-	position: absolute !important;
-	top: 4px !important;
-	right: 4px !important;
-	display: inline-flex !important;
-	align-items: center !important;
-	justify-content: center !important;
-	width: 22px !important;
-	height: 22px !important;
-	background-color: var(--background-primary) !important;
-	border: 1px solid var(--background-modifier-border) !important;
-	border-radius: var(--radius-s) !important;
-	color: var(--text-normal) !important;
-	cursor: pointer !important;
-	opacity: 1 !important;
-	z-index: 10 !important;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-	transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease !important;
+.markdown-preview-view td.copycel-cell > span.copycel-cell-copy-icon,
+.markdown-preview-view th.copycel-cell > span.copycel-cell-copy-icon,
+.markdown-source-view td.copycel-cell > span.copycel-cell-copy-icon,
+.markdown-source-view th.copycel-cell > span.copycel-cell-copy-icon {
+	--copycel-icon-background: var(--background-primary);
+	--copycel-icon-border: var(--background-modifier-border);
+	--copycel-icon-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	--copycel-icon-hover-background: var(--interactive-hover);
+	--copycel-icon-hover-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+
+	position: absolute;
+	top: 4px;
+	inset-inline-end: 4px;
+	z-index: 10;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border: 1px solid var(--copycel-icon-border);
+	border-radius: var(--radius-s);
+	background-color: var(--copycel-icon-background);
+	box-shadow: var(--copycel-icon-shadow);
+	color: var(--text-normal);
+	cursor: pointer;
+	opacity: 1;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.copycel-cell-copy-icon:hover,
-.copycel-cell-copy-icon:focus-visible {
-	background-color: var(--interactive-hover) !important;
-	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3) !important;
-	transform: scale(1.1) !important;
+.theme-dark .markdown-preview-view td.copycel-cell > span.copycel-cell-copy-icon,
+.theme-dark .markdown-preview-view th.copycel-cell > span.copycel-cell-copy-icon,
+.theme-dark .markdown-source-view td.copycel-cell > span.copycel-cell-copy-icon,
+.theme-dark .markdown-source-view th.copycel-cell > span.copycel-cell-copy-icon {
+	--copycel-icon-background: var(--background-secondary);
+	--copycel-icon-border: var(--background-modifier-border-hover);
+	--copycel-icon-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+	--copycel-icon-hover-background: var(--background-modifier-hover);
+	--copycel-icon-hover-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
 }
 
-.copycel-cell-copy-icon svg {
-	color: var(--text-normal) !important;
-	opacity: 1 !important;
+.markdown-preview-view td.copycel-cell > span.copycel-cell-copy-icon:hover,
+.markdown-preview-view td.copycel-cell > span.copycel-cell-copy-icon:focus-visible,
+.markdown-preview-view th.copycel-cell > span.copycel-cell-copy-icon:hover,
+.markdown-preview-view th.copycel-cell > span.copycel-cell-copy-icon:focus-visible,
+.markdown-source-view td.copycel-cell > span.copycel-cell-copy-icon:hover,
+.markdown-source-view td.copycel-cell > span.copycel-cell-copy-icon:focus-visible,
+.markdown-source-view th.copycel-cell > span.copycel-cell-copy-icon:hover,
+.markdown-source-view th.copycel-cell > span.copycel-cell-copy-icon:focus-visible {
+	background-color: var(--copycel-icon-hover-background);
+	box-shadow: var(--copycel-icon-hover-shadow);
+	transform: scale(1.1);
+}
+
+.markdown-preview-view td.copycel-cell > span.copycel-cell-copy-icon svg,
+.markdown-preview-view th.copycel-cell > span.copycel-cell-copy-icon svg,
+.markdown-source-view td.copycel-cell > span.copycel-cell-copy-icon svg,
+.markdown-source-view th.copycel-cell > span.copycel-cell-copy-icon svg {
+	color: var(--text-normal);
+	opacity: 1;
 }
 
 .copycel-flash {
@@ -45,16 +77,4 @@
 	100% {
 		background-color: transparent;
 	}
-}
-
-.theme-dark .copycel-cell-copy-icon {
-	background-color: var(--background-secondary) !important;
-	border-color: var(--background-modifier-border-hover) !important;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-}
-
-.theme-dark .copycel-cell-copy-icon:hover,
-.theme-dark .copycel-cell-copy-icon:focus-visible {
-	background-color: var(--background-modifier-hover) !important;
-	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5) !important;
 }
