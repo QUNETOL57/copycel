@@ -1,8 +1,60 @@
-/*
+.copycel-cell {
+	position: relative !important;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.copycel-cell-copy-icon {
+	position: absolute !important;
+	top: 4px !important;
+	right: 4px !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 22px !important;
+	height: 22px !important;
+	background-color: var(--background-primary) !important;
+	border: 1px solid var(--background-modifier-border) !important;
+	border-radius: var(--radius-s) !important;
+	color: var(--text-normal) !important;
+	cursor: pointer !important;
+	opacity: 1 !important;
+	z-index: 10 !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease !important;
+}
 
-If your plugin does not need CSS, delete this file.
+.copycel-cell-copy-icon:hover,
+.copycel-cell-copy-icon:focus-visible {
+	background-color: var(--interactive-hover) !important;
+	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3) !important;
+	transform: scale(1.1) !important;
+}
 
-*/
+.copycel-cell-copy-icon svg {
+	color: var(--text-normal) !important;
+	opacity: 1 !important;
+}
+
+.copycel-flash {
+	animation: copycel-flash 0.8s ease-out;
+}
+
+@keyframes copycel-flash {
+	0% {
+		background-color: var(--text-selection);
+	}
+	100% {
+		background-color: transparent;
+	}
+}
+
+.theme-dark .copycel-cell-copy-icon {
+	background-color: var(--background-secondary) !important;
+	border-color: var(--background-modifier-border-hover) !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.theme-dark .copycel-cell-copy-icon:hover,
+.theme-dark .copycel-cell-copy-icon:focus-visible {
+	background-color: var(--background-modifier-hover) !important;
+	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5) !important;
+}
