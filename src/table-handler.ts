@@ -118,7 +118,7 @@ export class TableHandler {
 	}
 
 	private async copyCellValue(cell: HTMLTableCellElement): Promise<void> {
-		const cellText = cell.innerText.trim();
+		const { text: cellText, hasSecret } = this.cellText(cell);
 		if (!cellText) {
 			if (this.settings.showNotification) new Notice('Cell is empty');
 			return;
@@ -131,8 +131,40 @@ export class TableHandler {
 			return;
 		}
 
-		if (this.settings.showNotification) new Notice(`Copied ${cellText}`);
+		if (this.settings.showNotification) {
+			new Notice(hasSecret ? 'Copied' : `Copied ${cellText}`);
+		}
 		this.flashCell(cell);
+	}
+
+	private cellText(cell: HTMLTableCellElement): { text: string; hasSecret: boolean } {
+		let hasSecret = false;
+		const parts: string[] = [];
+		const walk = (node: Node) => {
+			if (node.nodeType === Node.ELEMENT_NODE) {
+				const element = node as HTMLElement;
+				if (element.hasClass('veilbit-secret')) {
+					const secret = element.getAttribute('data-veilbit-value');
+					if (secret !== null) {
+						hasSecret = true;
+						parts.push(secret);
+						return;
+					}
+				}
+				if (element.tagName === 'BR') {
+					parts.push('\n');
+					return;
+				}
+			}
+			if (node.nodeType === Node.TEXT_NODE) {
+				parts.push(node.textContent ?? '');
+				return;
+			}
+			for (const child of Array.from(node.childNodes)) walk(child);
+		};
+
+		for (const child of Array.from(cell.childNodes)) walk(child);
+		return { text: parts.join('').trim(), hasSecret };
 	}
 
 	private flashCell(cell: HTMLTableCellElement): void {

@@ -10,6 +10,8 @@ Install Copycel from **Settings → Community plugins → Browse**.
 
 When you click the copy icon, Copycel writes that cell's text to the system clipboard. It does not read the clipboard, so text copied from other applications stays there until you copy a cell. The cell value can appear in the operating system's clipboard history.
 
+A Veilbit secret in the cell is copied as its real text. The mask stays on screen, and the notice does not show the secret.
+
 ## Usage
 
 1. Open a note that contains a Markdown table.
