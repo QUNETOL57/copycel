@@ -1,7 +1,7 @@
 {
 	"id": "copycel",
 	"name": "Copycel",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"minAppVersion": "1.0.0",
 	"description": "Copy a table cell value with one click.",
 	"author": "QUNETOL57",
