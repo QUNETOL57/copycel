@@ -70,7 +70,8 @@ export class TableHandler {
 	}
 
 	private showCopyIcon(cell: HTMLTableCellElement): void {
-		if (!cell.innerText.trim()) {
+		const { text } = this.cellText(cell);
+		if (!text) {
 			this.hideIcon();
 			return;
 		}
@@ -140,9 +141,17 @@ export class TableHandler {
 	private cellText(cell: HTMLTableCellElement): { text: string; hasSecret: boolean } {
 		let hasSecret = false;
 		const parts: string[] = [];
+		const root = cell.querySelector<HTMLElement>('.cm-content') ?? cell;
+
 		const walk = (node: Node) => {
 			if (node.nodeType === Node.ELEMENT_NODE) {
 				const element = node as HTMLElement;
+				if (this.isElementHidden(element)) {
+					return;
+				}
+				if (element.getAttribute('aria-hidden') === 'true' && !element.hasClass('veilbit-secret')) {
+					return;
+				}
 				if (element.hasClass('veilbit-secret')) {
 					const secret = element.getAttribute('data-veilbit-value');
 					if (secret !== null) {
@@ -151,8 +160,26 @@ export class TableHandler {
 						return;
 					}
 				}
+				if (element.hasClass('cm-line')) {
+					const lastPart = parts[parts.length - 1];
+					if (lastPart !== undefined && !lastPart.endsWith('\n')) {
+						parts.push('\n');
+					}
+				}
 				if (element.tagName === 'BR') {
-					parts.push('\n');
+					if (!element.hasClass('cm-trailingBreak')) {
+						parts.push('\n');
+					}
+					return;
+				}
+				if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+					if (element.instanceOf(HTMLInputElement)) {
+						if (element.type !== 'checkbox' && element.type !== 'radio') {
+							parts.push(element.value);
+						}
+					} else if (element.instanceOf(HTMLTextAreaElement)) {
+						parts.push(element.value);
+					}
 					return;
 				}
 			}
@@ -163,8 +190,21 @@ export class TableHandler {
 			for (const child of Array.from(node.childNodes)) walk(child);
 		};
 
-		for (const child of Array.from(cell.childNodes)) walk(child);
+		if (root === cell) {
+			for (const child of Array.from(cell.childNodes)) walk(child);
+		} else {
+			walk(root);
+		}
+
 		return { text: parts.join('').trim(), hasSecret };
+	}
+
+	private isElementHidden(element: HTMLElement): boolean {
+		if (element.hidden || element.style.display === 'none') {
+			return true;
+		}
+		const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+		return style !== undefined && (style.display === 'none' || style.visibility === 'hidden');
 	}
 
 	private flashCell(cell: HTMLTableCellElement): void {
