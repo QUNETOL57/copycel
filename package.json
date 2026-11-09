@@ -1,6 +1,6 @@
 {
 	"name": "copycel",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "Copy a table cell value with one click.",
 	"main": "main.js",
 	"type": "module",
